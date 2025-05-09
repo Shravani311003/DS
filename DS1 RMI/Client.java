@@ -21,3 +21,38 @@ public class Client {
 	}
 }
 
+import java.rmi.RemoteException;
+import java.rmi.server.UnicastRemoteObject;
+import java.rmi.*;
+import java.rmi.server.*;
+
+public class Servant extends UnicastRemoteObject implements ServerInterface {
+	protected Servant() throws RemoteException {
+    	super();
+	}
+
+	@Override
+	public String concat(String a, String b) throws RemoteException {
+    	return a + b;
+	}
+}
+
+import java.rmi.*;
+import java.net.*;
+
+public class Server {
+	public static void main(String[] args) {
+    	try {
+        	Servant s = new Servant();
+        	Naming.rebind("Server", s);
+    	} catch (Exception e) {
+        	System.out.println(e);
+    	}
+	}
+} 
+
+import java.rmi.*;
+
+public interface ServerInterface extends Remote {
+	String concat(String a, String b) throws RemoteException;
+} 
