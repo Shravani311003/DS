@@ -1,64 +1,144 @@
-from timeit import default_timer as timer
-from dateutil import parser
-import threading
-import datetime
-import socket 
-import time
- 
+#Client.py
+import socket
 
-# client thread function used to send time at client side
-def startSendingTime(slave_client):
- 
+import threading
+
+import datetime
+
+import time
+
+from dateutil import parser
+
+
+
+def send_time(sock):
+
     while True:
-        # provide server with clock time at the client
-        slave_client.send(str(
-                       datetime.datetime.now()).encode())
- 
-        print("Recent time sent successfully",
-                                          end = "\n\n")
+
+        now = str(datetime.datetime.now())
+
+        sock.send(now.encode())
+
+        print(f"[SENT] Local time: {now}")
+
         time.sleep(5)
- 
- 
-# client thread function used to receive synchronized time
-def startReceivingTime(slave_client):
- 
+
+
+
+def receive_time(sock):
+
     while True:
-        # receive data from the server
-        Synchronized_time = parser.parse(
-                          slave_client.recv(1024).decode())
- 
-        print("Synchronized time at the client is: " + \
-                                    str(Synchronized_time),
-                                    end = "\n\n")
- 
- 
-# function used to Synchronize client process time
-def initiateSlaveClient(port = 8080):
- 
-    slave_client = socket.socket()          
-       
-    # connect to the clock server on local computer 
-    slave_client.connect(('127.0.0.1', port)) 
- 
-    # start sending time to server 
-    print("Starting to receive time from server\n")
-    send_time_thread = threading.Thread(
-                      target = startSendingTime,
-                      args = (slave_client, ))
-    send_time_thread.start()
- 
- 
-    # start receiving synchronized from server
-    print("Starting to receiving " + \
-                         "synchronized time from server\n")
-    receive_time_thread = threading.Thread(
-                       target = startReceivingTime,
-                       args = (slave_client, ))
-    receive_time_thread.start()
- 
- 
-# Driver function
+
+        sync_time = parser.parse(sock.recv(1024).decode())
+
+        print(f"[SYNCED] Time received: {sync_time}")
+
+        time.sleep(5)
+
+
+
+def start_client(port=8080):
+
+    client = socket.socket()
+
+    client.connect(('localhost', port))
+
+
+
+    threading.Thread(target=send_time, args=(client,), daemon=True).start()
+
+    threading.Thread(target=receive_time, args=(client,), daemon=True).start()
+
+
+
+    while True:
+
+        time.sleep(1)  # Keep the main thread alive
+
+
+
 if __name__ == '__main__':
- 
-    # initialize the Slave / Client
-    initiateSlaveClient(port = 8080)
+
+    start_client()
+#Server.py
+
+import socket
+
+import threading
+
+import datetime
+
+import time
+
+from dateutil import parser
+
+client_data = {}
+
+def handle_client(conn, addr):
+
+    while True:
+
+        try:
+
+            client_time = parser.parse(conn.recv(1024).decode())
+
+            time_diff = datetime.datetime.now() - client_time
+
+            client_data[addr] = (conn, time_diff)
+
+            print(f"[{addr}] Sent time: {client_time}")
+
+            time.sleep(5)
+
+        except:
+
+            break
+
+def sync_clocks():
+
+    while True:
+
+        if client_data:
+
+            avg_diff = sum([diff for _, diff in client_data.values()], datetime.timedelta()) / len(client_data)
+
+            sync_time = datetime.datetime.now() + avg_diff
+
+            for addr, (conn, _) in client_data.items():
+
+                try:
+
+                    conn.send(str(sync_time).encode())
+
+                    print(f"[{addr}] Sent sync time: {sync_time}")
+
+                except:
+
+                    pass
+
+        time.sleep(5)
+
+def start_server(port=8080):
+
+    server = socket.socket()
+
+    server.bind(('localhost', port))
+
+    server.listen()
+
+    print("Server is running and waiting for clients...")
+
+    threading.Thread(target=sync_clocks, daemon=True).start()
+
+    while True:
+
+        conn, addr = server.accept()
+
+        print(f"[CONNECTED] {addr}")
+
+        threading.Thread(target=handle_client, args=(conn, addr), daemon=True).start()
+
+if __name__ == '__main__':
+
+    start_server()
+
