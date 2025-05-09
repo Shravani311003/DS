@@ -6,21 +6,15 @@
 
 #include <math.h>
 
-
-
 int a[20];
 
 int a2[20];
-
-
 
 int main(int argc,char* argv[])
 
 {	
 
 	int pid,np,elements_per_process,n_elements_received,no;
-
-	
 
 	MPI_Status status;
 
@@ -29,10 +23,6 @@ int main(int argc,char* argv[])
 	MPI_Comm_rank (MPI_COMM_WORLD,&pid);
 
 	MPI_Comm_size(MPI_COMM_WORLD,&np);
-
-	
-
-	
 
 	if(pid==0)
 
@@ -51,14 +41,7 @@ int main(int argc,char* argv[])
 		scanf("%d",&a[i]);
 
 	}
-
-	
-
-	 elements_per_process = (int) ceil((double) no / np);
-
-
-
-		
+ elements_per_process = (int) ceil((double) no / np);
 
 	for (int i = 1; i < np; i++) 
 
@@ -96,12 +79,6 @@ int main(int argc,char* argv[])
 
         }
 
-	
-
-	
-
-	
-
 	int sum=0;
 
 	for(int i = 0 ; i < elements_per_process;i++)
@@ -130,17 +107,8 @@ int main(int argc,char* argv[])
 
 		sum+=temp;
 
-	
-
 	}
-
-	
-
 	printf("Final sum is %d\n:",sum);
-
-	
-
-	
 
         }
 
@@ -154,11 +122,7 @@ int main(int argc,char* argv[])
 
         	MPI_Recv(&a2,n_elements_received,MPI_INT,0,0,MPI_COMM_WORLD,&status);
 
-        	
-
         	printf("Slave process %d has received the array.\n",pid);
-
-        	
 
         	int partial_sum=0;
 
@@ -170,31 +134,16 @@ int main(int argc,char* argv[])
 
         	}
 
-        	
-
         	MPI_Send(&partial_sum,1,MPI_INT,0,0,MPI_COMM_WORLD);
-
-        
-
-        
 
         }
 
-        
-
         MPI_Finalize();
 
-
-
 }
-
-
-
 //mpicc mpi.c -o mpi -lm
 
 //mpirun -np 4 ./mpi
-
-
 
 //to run 
 //mpicc -o DS3MPI_c DS3MPI.c
