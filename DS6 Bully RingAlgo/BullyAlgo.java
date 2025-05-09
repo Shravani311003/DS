@@ -82,3 +82,171 @@ public class BullyAlgo {
         return max_process;
     }
 }
+
+import java.util.*;
+
+
+
+public class Ringalgo
+
+{
+
+	static int old_lead;
+
+	static int new_lead;
+
+	static int fail_pr;
+
+	static int np;
+
+	static int isActive[];
+
+	static int arr[];
+
+	static int initiator;
+
+	public static void main(String args[])
+
+	{
+
+		Scanner sc = new Scanner(System.in);
+
+		System.out.println("Enter the number of process:");
+
+		np = sc.nextInt();
+
+		isActive = new int[np+1];
+
+		for(int i = 1 ; i <= np ; i++)
+
+		{
+
+			isActive[i]=1;
+
+		}
+
+		old_lead = np;
+
+		isActive[old_lead] = 0;
+
+		System.out.println("Enter the process that initiates the process:");
+
+		initiator = sc.nextInt();
+
+		
+
+		System.out.println("The process that is failed is " + old_lead);
+
+		System.out.println("Enter the process that fails(other than leader process) if none give 0:");
+
+		fail_pr = sc.nextInt();
+
+		if(fail_pr > 0 && fail_pr <= np)
+
+		{
+
+			isActive[fail_pr] = 0;
+
+		}
+
+		new_lead  = election_process(isActive,old_lead,initiator);
+
+		System.out.println("Finally the process " + new_lead + " is selected as new lead..");
+
+		for(int i = 1; i<np-1;i++)
+
+		{
+
+		if(isActive[i]==1)
+
+		{
+
+		System.out.println("Process "+new_lead+" passes the coordinator ( "+new_lead+" )new_lead to " +i);
+
+		}
+
+		}
+
+		
+
+		sc.close();
+
+		}
+	public static int election_process(int isActive[],int old_lead ,int initiator)
+	{
+
+		System.out.println("The election process is started by "+initiator);
+
+		int index = 0 ;
+
+		arr = new int[np+1];
+
+		int i = initiator;
+
+		int receiver = (i % np) + 1;
+	while(index <= np-1)
+
+		{
+
+			if(isActive[i]==1 && i!= receiver)
+
+			{
+
+				if(isActive[receiver]==0)
+
+				{
+
+				receiver = (receiver % np)+1;
+
+				}
+
+		System.out.println(i + " sends the Election message to process "+receiver);
+
+		arr[index] = i;
+
+		printArray(arr,index + 1);
+
+		}
+		i = (i%np)+1;
+
+		receiver = (i%np)+1;
+
+		index++;
+		}
+		new_lead = 0;
+		for(int j = 0 ; j<=np;j++)
+
+		{
+
+			if(new_lead < arr[j])
+
+			{
+
+				new_lead = arr[j];
+
+			}
+		}
+		return new_lead;
+
+}
+
+public static void printArray(int arr[],int size)
+
+{
+
+	System.out.print("[");
+
+	for(int i = 0 ; i <size ; i++)
+
+	{
+
+		if(arr[i]==0) continue;
+
+		System.out.print(arr[i] + " ");
+	}
+
+	System.out.println("]");
+
+}
+
+}
